@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語 N4 模擬測驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background-color: #fff9f9;
+            color: #5c5470;
+        }
+        ruby {
+            ruby-align: center;
+        }
+        rt {
+            font-size: 0.65em;
+            color: #9ca3af;
+        }
+        .macaron-bg {
+            background-image: radial-gradient(#ffdac1 2px, transparent 2px), radial-gradient(#e2f0cb 2px, transparent 2px);
+            background-position: 0 0, 20px 20px;
+            background-size: 40px 40px;
+            background-color: #fff9f9;
+        }
+        .macaron-card {
+            background: #ffffff;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px -5px rgba(255, 183, 178, 0.25);
+            border: 4px solid #fff0f5;
+        }
+        .macaron-btn {
+            background: linear-gradient(135deg, #ffb7b2, #ffdac1);
+            color: #fff;
+            box-shadow: 0 6px 15px rgba(255, 183, 178, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .macaron-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(255, 183, 178, 0.6);
+        }
+        .macaron-btn-alt {
+            background: linear-gradient(135deg, #b5ead7, #e2f0cb);
+            color: #5c5470;
+            box-shadow: 0 6px 15px rgba(181, 234, 215, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .macaron-btn-alt:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(181, 234, 215, 0.6);
+        }
+        .option-btn {
+            border: 3px solid #f8edeb;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: #ffdac1;
+            background-color: #fffaf0;
+            box-shadow: 0 4px 10px rgba(255, 218, 193, 0.2);
+        }
+        .option-btn.correct {
+            background-color: #e2f0cb !important;
+            border-color: #b5ead7 !important;
+            color: #4a7c59 !important;
+        }
+        .option-btn.wrong {
+            background-color: #ffb7b2 !important;
+            border-color: #ff9aa2 !important;
+            color: #c9184a !important;
+        }
+        .explanation-box {
+            background-color: #f0f8ff;
+            border-left: 6px solid #b5ead7;
+            border-radius: 0 20px 20px 0;
+            animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-15px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .progress-fill {
+            transition: width 0.4s ease;
+            background: linear-gradient(90deg, #ffb7b2, #ffdac1, #e2f0cb, #b5ead7);
+            background-size: 300% 100%;
+            animation: gradientMove 3s ease infinite;
+        }
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="macaron-bg min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-3xl w-full macaron-card overflow-hidden relative">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="p-10 text-center flex flex-col items-center justify-center min-h-[450px]">
+            <div class="w-24 h-24 bg-[#fff0f5] text-[#ff9aa2] rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm border-4 border-white">
+                🍰
+            </div>
+            <h1 class="text-3xl font-bold text-[#6d6875] mb-4 tracking-wider">日本語 N4 模擬測驗</h1>
+            <p class="text-[#8d8799] mb-8 max-w-md font-medium text-lg leading-relaxed">
+                全 30 題綜合測驗 🍡<br>
+                準備好挑戰你的日語實力了嗎？<br>
+                答題後會有詳細的拼音解答喔！
+            </p>
+            <button onclick="startQuiz()" class="macaron-btn font-bold py-4 px-12 rounded-full text-lg tracking-widest">
+                開始測驗
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="hidden flex-col h-full">
+            <!-- Progress Bar -->
+            <div class="w-full bg-[#f8edeb] h-3">
+                <div id="progress-bar" class="progress-fill h-3 w-0 rounded-r-full"></div>
+            </div>
+            
+            <div class="p-6 sm:p-10">
+                <div class="flex justify-between items-center mb-8">
+                    <span id="question-counter" class="text-sm font-bold text-[#b5ead7] bg-[#f0f9f6] py-1.5 px-4 rounded-full border-2 border-[#b5ead7]">
+                        第 1 題 / 共 30 題
+                    </span>
+                    <span id="score-display" class="text-sm font-bold text-[#ffb7b2] bg-[#fff0f5] py-1.5 px-4 rounded-full border-2 border-[#ffb7b2]">
+                        得分: 0
+                    </span>
+                </div>
+
+                <!-- Question Text -->
+                <h2 id="question-text" class="text-xl sm:text-2xl font-bold text-[#5c5470] mb-8 leading-relaxed">
+                    <!-- 題目將顯示於此 -->
+                </h2>
+
+                <!-- Options -->
+                <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                    <!-- 選項將顯示於此 -->
+                </div>
+
+                <!-- Explanation Area (Hidden by default) -->
+                <div id="explanation-area" class="hidden">
+                    <div class="explanation-box p-6 mb-8 shadow-sm">
+                        <h3 class="font-bold text-[#4a7c59] mb-3 flex items-center text-lg">
+                            <span class="text-2xl mr-2">✨</span> 詳細解釋
+                        </h3>
+                        <p id="explanation-text" class="text-[#5c5470] leading-loose text-lg font-medium">
+                            <!-- 解答將顯示於此 -->
+                        </p>
+                    </div>
+                    <div class="text-center sm:text-right">
+                        <button id="next-btn" onclick="nextQuestion()" class="macaron-btn-alt font-bold py-3 px-10 rounded-full text-lg tracking-wide">
+                            下一題 ➔
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden p-10 text-center flex flex-col items-center justify-center min-h-[450px]">
+            <div class="text-7xl mb-6 bounce-animation">🎉</div>
+            <h2 class="text-3xl font-bold text-[#6d6875] mb-2">測驗完成！</h2>
+            <p class="text-[#8d8799] mb-8 font-medium">辛苦了！一起來看看最終成績吧 🌸</p>
+            
+            <div class="bg-[#fff9f9] border-4 border-[#ffdac1] rounded-3xl p-8 mb-8 w-full max-w-sm shadow-sm relative overflow-hidden">
+                <div class="absolute -top-4 -right-4 text-6xl opacity-20">🍬</div>
+                <div class="text-md text-[#ffb7b2] font-bold mb-2">最終得分</div>
+                <div class="text-6xl font-bold text-[#ff9aa2] mb-2 drop-shadow-sm">
+                    <span id="final-score">0</span><span class="text-3xl text-[#ffdac1]">/30</span>
+                </div>
+                <p id="result-message" class="text-[#5c5470] font-bold mt-4 text-lg"></p>
+            </div>
+
+            <button onclick="restartQuiz()" class="macaron-btn font-bold py-3 px-10 rounded-full text-lg tracking-widest">
+                重新測驗
+            </button>
+        </div>
+    </div>
+
+    <!-- Message Box Overlay -->
+    <div id="message-box" class="fixed inset-0 bg-[#5c5470] bg-opacity-40 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full mx-4 transform scale-95 transition-transform duration-300 border-4 border-[#ffdac1]" id="message-content-box">
+            <h3 class="text-xl font-bold text-[#ff9aa2] mb-3 flex items-center">
+                <span class="mr-2">🎀</span> 提示
+            </h3>
+            <p class="text-[#6d6875] mb-8 font-medium text-lg" id="message-body">這是一則訊息。</p>
+            <div class="text-center">
+                <button onclick="closeMessage()" class="macaron-btn font-bold py-2.5 px-8 rounded-full">
+                    確定
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Quiz Data - Perfectly balanced: A=8, B=8, C=7, D=7
+        // A(0)=8, B(1)=8, C(2)=7, D(3)=7
+        const quizData = [
+            { // 1. Answer: A (0)
+                q: "今日は用事がある（　　）、先に帰ります。",
+                options: ["A. ので", "B. のに", "C. でも", "D. なら"],
+                correct: 0,
+                exp: "表示原因、理由的「〜ので」。<br>（<ruby>今日<rt>きょう</rt></ruby>は<ruby>用事<rt>ようじ</rt></ruby>があるから、<ruby>先<rt>さき</rt></ruby>に<ruby>帰<rt>かえ</rt></ruby>ります）"
+            },
+            { // 2. Answer: B (1)
+                q: "この窓から海が（　　）。",
+                options: ["A. 見ます", "B. 見えます", "C. 見せます", "D. 見ています"],
+                correct: 1,
+                exp: "表示自然映入眼簾的可能動詞「<ruby>見<rt>み</rt></ruby>えます」。<br>（この<ruby>窓<rt>まど</rt></ruby>から<ruby>海<rt>うみ</rt></ruby>が<ruby>見<rt>み</rt></ruby>えます）"
+            },
+            { // 3. Answer: C (2)
+                q: "わたしは大学を卒業したら、日本の会社で（　　）つもりです。",
+                options: ["A. 働いた", "B. 働いて", "C. 働く", "D. 働こう"],
+                correct: 2,
+                exp: "「〜つもりです」表示打算，前面接動詞辭書形。<br>（<ruby>大学<rt>だいがく</rt></ruby>を<ruby>卒業<rt>そつぎょう</rt></ruby>したら、<ruby>日本<rt>にほん</rt></ruby>の<ruby>会社<rt>かいしゃ</rt></ruby>で<ruby>働<rt>はたら</rt></ruby>く）"
+            },
+            { // 4. Answer: D (3)
+                q: "田中さんは今日は来ない（　　）です。",
+                options: ["A. みたいな", "B. らしいな", "C. そうな", "D. よう"],
+                correct: 3,
+                exp: "表示推測的「〜ようです」，前面接普通形。<br>（<ruby>田中<rt>たなか</rt></ruby>さんは<ruby>今日<rt>きょう</rt></ruby>は<ruby>来<rt>こ</rt></ruby>ないようです）"
+            },
+            { // 5. Answer: A (0)
+                q: "「ここに入るな。」と一番近い意味はどれですか。",
+                options: ["A. ここに入らないでください。", "B. ここに入ってください。", "C. ここに入ってもいいです。", "D. ここに入らなければなりません。"],
+                correct: 0,
+                exp: "「<ruby>入<rt>はい</rt></ruby>るな」是禁止形，意思是「不要進去」。相當於「<ruby>入<rt>はい</rt></ruby>らないでください」。"
+            },
+            { // 6. Answer: B (1)
+                q: "A：ちょっとコンビニまで行ってきます。<br>B：はい、（　　）。",
+                options: ["A. 行きましょう", "B. 行ってらっしゃい", "C. 行きません", "D. 来てください"],
+                correct: 1,
+                exp: "對家人或同事說「<ruby>行<rt>い</rt></ruby>ってきます」（我出門了）時，要回「<ruby>行<rt>い</rt></ruby>ってらっしゃい」（慢走）。"
+            },
+            { // 7. Answer: C (2)
+                q: "この服が合うかどうか、一度（　　）。",
+                options: ["A. 着てみますか", "B. 着ました", "C. 着てみてください", "D. 着るみたいです"],
+                correct: 2,
+                exp: "「〜てみる」表示試著做某事。<br>（この<ruby>服<rt>ふく</rt></ruby>が<ruby>合<rt>あ</rt></ruby>うかどうか、<ruby>一度<rt>いちど</rt></ruby><ruby>着<rt>き</rt></ruby>てみてください）"
+            },
+            { // 8. Answer: D (3)
+                q: "山田さんが（　　）、わたしも行きます。",
+                options: ["A. 来たそうで", "B. 来るので", "C. 来ても", "D. 来るなら"],
+                correct: 3,
+                exp: "「〜なら」表示假設、順承。<br>（<ruby>山田<rt>やまだ</rt></ruby>さんが<ruby>来<rt>く</rt></ruby>るなら：如果山田要來的話）"
+            },
+            { // 9. Answer: A (0)
+                q: "このケーキはとても（　　）そうですね。",
+                options: ["A. おいし", "B. おいしい", "C. おいしく", "D. おいしくて"],
+                correct: 0,
+                exp: "表示樣態的「〜そうです」，接在い形容詞去「い」之後。<br>（<ruby>美味<rt>おい</rt></ruby>しそうです：看起來很好吃）"
+            },
+            { // 10. Answer: B (1)
+                q: "昨日、犬に手を（　　）、病院へ行きました。",
+                options: ["A. かんで", "B. かまれて", "C. かませて", "D. かまないで"],
+                correct: 1,
+                exp: "表示受害的被動語態。「被狗咬」是「<ruby>犬<rt>いぬ</rt></ruby>に<ruby>手<rt>て</rt></ruby>をかまれる」，改為て形連接後句為「かまれて」。<br>（<ruby>病院<rt>びょういん</rt></ruby>へ<ruby>行<rt>い</rt></ruby>きました）"
+            },
+            { // 11. Answer: C (2)
+                q: "昨夜、駅で財布が（　　）。",
+                options: ["A. 盗みました", "B. 盗ませました", "C. 盗まれました", "D. 盗んでいました"],
+                correct: 2,
+                exp: "事物為主語的被動語態。<br>（<ruby>昨夜<rt>さくや</rt></ruby>、<ruby>駅<rt>えき</rt></ruby>で<ruby>財布<rt>さいふ</rt></ruby>が<ruby>盗<rt>ぬす</rt></ruby>まれました：錢包被偷了）"
+            },
+            { // 12. Answer: D (3)
+                q: "私は知らない人（　　）写真を撮られました。",
+                options: ["A. を", "B. が", "C. で", "D. に"],
+                correct: 3,
+                exp: "被動句中，動作的執行者用助詞「に」標示。<br>（<ruby>私<rt>わたし</rt></ruby>は<ruby>知<rt>し</rt></ruby>らない<ruby>人<rt>ひと</rt></ruby>に<ruby>写真<rt>しゃしん</rt></ruby>を<ruby>撮<rt>と</rt></ruby>られました）"
+            },
+            { // 13. Answer: A (0)
+                q: "天気予報によると、明日は雨が（　　）。",
+                options: ["A. 降るそうです", "B. 降ったそうです", "C. 降りそうでした", "D. 降っていました"],
+                correct: 0,
+                exp: "傳聞的「〜そうです」前面接普通形。<br>（<ruby>天気予報<rt>てんきよほう</rt></ruby>によると、<ruby>明日<rt>あした</rt></ruby>は<ruby>雨<rt>あめ</rt></ruby>が<ruby>降<rt>ふ</rt></ruby>るそうです）"
+            },
+            { // 14. Answer: B (1)
+                q: "彼は約束したので、きっと来る（　　）です。",
+                options: ["A. らしい", "B. はず", "C. そう", "D. よう"],
+                correct: 1,
+                exp: "「〜はずです」表示有客觀根據的強烈推測。<br>（<ruby>彼<rt>かれ</rt></ruby>は<ruby>約束<rt>やくそく</rt></ruby>したので、きっと<ruby>来<rt>く</rt></ruby>るはずです）"
+            },
+            { // 15. Answer: C (2)
+                q: "「明日は休みのはずです。」と一番近い意味はどれですか。",
+                options: ["A. 明日は必ず仕事をします。", "B. 明日は休みではないと思います。", "C. 明日は休みだと強く思っています。", "D. 明日は休みになる予定がありません。"],
+                correct: 2,
+                exp: "「はず」表示說話者基於客觀事實的強烈確信。<br>（<ruby>明日<rt>あした</rt></ruby>は<ruby>休<rt>やす</rt></ruby>みだと<ruby>強<rt>つよ</rt></ruby>く<ruby>思<rt>おも</rt></ruby>っています）"
+            },
+            { // 16. Answer: D (3)
+                q: "来年から毎日、日本語を勉強する（　　）にしました。",
+                options: ["A. もの", "B. ため", "C. ところ", "D. こと"],
+                correct: 3,
+                exp: "「動詞辭書形＋ことにする」表示自己下定決心做出的決定。<br>（<ruby>来年<rt>らいねん</rt></ruby>から<ruby>毎日<rt>まいにち</rt></ruby>、<ruby>日本語<rt>にほんご</rt></ruby>を<ruby>勉強<rt>べんきょう</rt></ruby>することにしました）"
+            },
+            { // 17. Answer: A (0)
+                q: "わたしは（1 来月　2 日本へ　3 行く　4 ことにしました）。正しい順番はどれですか。",
+                options: ["A. 1→2→3→4", "B. 2→1→3→4", "C. 1→3→2→4", "D. 3→2→1→4"],
+                correct: 0,
+                exp: "完整句型為：「わたしは <ruby>来月<rt>らいげつ</rt></ruby> <ruby>日本<rt>にほん</rt></ruby>へ <ruby>行<rt>い</rt></ruby>く ことにしました」。"
+            },
+            { // 18. Answer: B (1)
+                q: "先生が私に本を（　　）。",
+                options: ["A. もらいました", "B. くださいました", "C. あげました", "D. いただきました"],
+                correct: 1,
+                exp: "長輩給我物品，「くれる」的尊他語是「くださる」。<br>（<ruby>先生<rt>せんせい</rt></ruby>が<ruby>私<rt>わたし</rt></ruby>に<ruby>本<rt>ほん</rt></ruby>をくださいました）"
+            },
+            { // 19. Answer: C (2)
+                q: "A：その時計、どうしたんですか。<br>B：父が誕生日に（　　）。",
+                options: ["A. もらいました", "B. あげました", "C. くれました", "D. くださいました"],
+                correct: 2,
+                exp: "家人（父親）給我物品，使用「くれる」。<br>（<ruby>父<rt>ちち</rt></ruby>が<ruby>誕生日<rt>たんじょうび</rt></ruby>にくれました）"
+            },
+            { // 20. Answer: D (3)
+                q: "お客様、こちらに（　　）ください。",
+                options: ["A. 座って", "B. 座られて", "C. お座って", "D. お座り"],
+                correct: 3,
+                exp: "「お＋動詞ます形去ます＋ください」是禮貌的勸誘與請求表現。<br>（お<ruby>客様<rt>きゃくさま</rt></ruby>、こちらにお<ruby>座<rt>すわ</rt></ruby>りください）"
+            },
+            { // 21. Answer: A (0)
+                q: "社長は（1 もう　2 お帰りに　3 なりました　4 か）。正しい順番はどれですか。",
+                options: ["A. 1→2→3→4", "B. 2→1→3→4", "C. 3→2→4→1", "D. 1→3→2→4"],
+                correct: 0,
+                exp: "尊敬語句型「お＋動詞ます形去ます＋になる」。<br>（<ruby>社長<rt>しゃちょう</rt></ruby>は もう お<ruby>帰<rt>かえ</rt></ruby>りに なりました か）"
+            },
+            { // 22. Answer: B (1)
+                q: "私は先生に本を（　　）。",
+                options: ["A. お貸ししました", "B. お借りしました", "C. お貸しになりました", "D. 貸してくれました"],
+                correct: 1,
+                exp: "我向老師借書，動作主體是自己。「<ruby>借<rt>か</rt></ruby>りる」的謙讓語是「お<ruby>借<rt>か</rt></ruby>りする」。"
+            },
+            { // 23. Answer: C (2)
+                q: "私は先生に日本語の辞書を（　　）。",
+                options: ["A. 借りさせられました", "B. お借りくださいました", "C. 貸していただきました", "D. お貸ししました"],
+                correct: 2,
+                exp: "請老師借我字典（我得到老師借我字典的恩惠）。「〜てもらう」的謙讓語是「〜ていただく」。<br>（<ruby>貸<rt>か</rt></ruby>していただきました）"
+            },
+            { // 24. Answer: D (3)
+                q: "日本の「桜」（　　）いう花を知っていますか。",
+                options: ["A. が", "B. を", "C. に", "D. と"],
+                correct: 3,
+                exp: "稱作某名稱的事物，用「名詞＋という＋名詞」。<br>（「<ruby>桜<rt>さくら</rt></ruby>」という<ruby>花<rt>はな</rt></ruby>：名為櫻花的花）"
+            },
+            { // 25. Answer: A (0)
+                q: "次の文章を読んでください。<br>「私の町には『さくら祭り』というイベントがあります。」<br><br>「さくら祭り」は何ですか。",
+                options: ["A. イベントの名前です。", "B. 食べ物の名前です。", "C. 桜の種類です。", "D. 公園の名前です。"],
+                correct: 0,
+                exp: "根據文章內容，「さくら<ruby>祭<rt>まつ</rt></ruby>り」是一個活動（イベント）的名字。<br>（<ruby>私<rt>わたし</rt></ruby>の<ruby>町<rt>まち</rt></ruby>）"
+            },
+            { // 26. Answer: B (1)
+                q: "A：すみません。今日は少し早く（　　）ください。<br>B：はい、わかりました。",
+                options: ["A. 帰って", "B. 帰らせて", "C. 帰られて", "D. 帰らせられて"],
+                correct: 1,
+                exp: "請求對方允許自己做某事時，用「動詞使役形＋てください」。<br>（<ruby>早<rt>はや</rt></ruby>く<ruby>帰<rt>かえ</rt></ruby>らせてください：請讓我回去）"
+            },
+            { // 27. Answer: C (2)
+                q: "先生に（1 早く　2 帰らせて　3 ください　4 とお願いしました）。正しい順番はどれですか。",
+                options: ["A. 2→1→3→4", "B. 1→3→2→4", "C. 1→2→3→4", "D. 3→2→1→4"],
+                correct: 2,
+                exp: "完整句型：「<ruby>先生<rt>せんせい</rt></ruby>に <ruby>早<rt>はや</rt></ruby>く <ruby>帰<rt>かえ</rt></ruby>らせて ください とお<ruby>願<rt>ねが</rt></ruby>いしました」（拜託老師讓我早點回去）。"
+            },
+            { // 28. Answer: D (3)
+                q: "学生は先生に作文を（　　）。",
+                options: ["A. 書かせました", "B. 書かれました", "C. 書いていました", "D. 書かされました"],
+                correct: 3,
+                exp: "使役被動語態，表示在別人的要求下被迫做某事。<br>（<ruby>学生<rt>がくせい</rt></ruby>は<ruby>先生<rt>せんせい</rt></ruby>に<ruby>作文<rt>さくぶん</rt></ruby>を<ruby>書<rt>か</rt></ruby>かされました：學生被老師要求寫作文）"
+            },
+            { // 29. Answer: A (0)
+                q: "先生は学生に「毎日漢字を100個書いてください」と言いました。<br>学生は先生に何をさせられましたか。",
+                options: ["A. 漢字を書かされました。", "B. 日本語を話させられました。", "C. 作文を書かされました。", "D. 本を読まされました。"],
+                correct: 0,
+                exp: "學生被老師要求每天寫100個漢字，所以是「被強迫寫漢字」。<br>（<ruby>漢字<rt>かんじ</rt></ruby>を<ruby>書<rt>か</rt></ruby>かされました）"
+            },
+            { // 30. Answer: B (1)
+            q: "「雨が降ったので、試合は中止になりました。」一番近い意味はどれですか。",
+            options: ["A. 雨が降っても、試合をします。", "B. 雨が降ったから、試合をやめました。", "C. 試合が中止になったのに、雨が降りました。", "D. 雨が降る前に、試合が終わりました。"],
+            correct: 1,
+            exp: "「ので」表示客觀原因。「因為下雨，比賽中止了」，意義等同於「<ruby>雨<rt>あめ</rt></ruby>が<ruby>降<rt>ふ</rt></ruby>ったから、<ruby>試合<rt>しあい</rt></ruby>をやめました」。"
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    function startQuiz() {
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        document.getElementById('quiz-screen').classList.add('flex');
+        currentQuestionIndex = 0;
+        score = 0;
+        updateScore();
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        answered = false;
+        const qData = quizData[currentQuestionIndex];
+        
+        // Update Progress & UI (No English text)
+        document.getElementById('question-counter').innerText = `第 ${currentQuestionIndex + 1} 題 / 共 ${quizData.length} 題`;
+        const progressPercentage = ((currentQuestionIndex) / quizData.length) * 100;
+        document.getElementById('progress-bar').style.width = `${progressPercentage}%`;
+        
+        // Set Question Text
+        document.getElementById('question-text').innerHTML = qData.q;
+        
+        // Generate Options
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        qData.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn w-full text-left p-4 sm:p-5 font-bold text-[#6d6875] text-lg bg-white';
+            btn.innerHTML = opt;
+            btn.onclick = () => selectOption(index, btn);
+            optionsContainer.appendChild(btn);
+        });
+
+        // Hide explanation
+        document.getElementById('explanation-area').classList.add('hidden');
+    }
+
+    function selectOption(selectedIndex, btnElement) {
+        if (answered) return;
+        answered = true;
+
+        const qData = quizData[currentQuestionIndex];
+        const isCorrect = (selectedIndex === qData.correct);
+        const allBtns = document.querySelectorAll('.option-btn');
+        
+        // Disable all buttons
+        allBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('cursor-default', 'opacity-70');
+        });
+
+        // Highlight chosen & correct
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            score++;
+            updateScore();
+        } else {
+            btnElement.classList.add('wrong');
+            allBtns[qData.correct].classList.add('correct'); // Show correct answer
+        }
+
+        // Show explanation
+        const expArea = document.getElementById('explanation-area');
+        const expText = document.getElementById('explanation-text');
+        expText.innerHTML = qData.exp;
+        expArea.classList.remove('hidden');
+        
+        // Scroll to explanation smoothly if on mobile
+        setTimeout(() => {
+            expArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+
+    function updateScore() {
+        document.getElementById('score-display').innerText = `得分: ${score}`;
+    }
+
+    function nextQuestion() {
+        if (currentQuestionIndex < quizData.length - 1) {
+            currentQuestionIndex++;
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('flex');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('result-screen').classList.add('flex');
+        
+        document.getElementById('progress-bar').style.width = `100%`;
+        document.getElementById('final-score').innerText = score;
+        
+        const msgElement = document.getElementById('result-message');
+        if (score === 30) {
+            msgElement.innerText = "太厲害了！完美滿分，N4 對你來說小菜一碟！🥇";
+        } else if (score >= 24) {
+            msgElement.innerText = "非常優秀！N4 基礎非常紮實！🌟";
+        } else if (score >= 18) {
+            msgElement.innerText = "表現不錯，再複習一下不熟的文法就更完美了！💪";
+        } else {
+            msgElement.innerText = "沒關係，多加練習一定會進步的！加油！📚";
+        }
+    }
+
+    function restartQuiz() {
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('flex');
+        startQuiz();
+    }
+
+    function showMessage(title, body) {
+        const msgBox = document.getElementById('message-box');
+        const contentBox = document.getElementById('message-content-box');
+        document.getElementById('message-title').innerHTML = `<span class="mr-2">🎀</span> ${title}`;
+        document.getElementById('message-body').innerText = body;
+        
+        msgBox.classList.remove('hidden');
+        // Small delay for transition
+        setTimeout(() => {
+            msgBox.classList.remove('opacity-0');
+            contentBox.classList.remove('scale-95');
+        }, 10);
+    }
+
+    function closeMessage() {
+        const msgBox = document.getElementById('message-box');
+        const contentBox = document.getElementById('message-content-box');
+        
+        msgBox.classList.add('opacity-0');
+        contentBox.classList.add('scale-95');
+        
+        setTimeout(() => {
+            msgBox.classList.add('hidden');
+        }, 300);
+    }
+</script>
+</body>
+</html>
